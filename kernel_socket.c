@@ -266,6 +266,7 @@ kernel_setup_socket(int setup)
 {
     int rc;
     int zero = 0;
+
     if(setup) {
         if(kernel_socket < 0) {
             kernel_socket = socket(PF_ROUTE, SOCK_RAW, AF_UNSPEC);
@@ -276,6 +277,15 @@ kernel_setup_socket(int setup)
                         &zero, sizeof(zero));
         if(rc < 0)
             goto error;
+
+#if notyet
+        rc = setsockopt(kernel_socket, AF_ROUTE, ROUTE_TABLEFILTER,
+		&rdomain, sizeof(rdomain));
+	
+	if (rc < 0)
+	    goto error;
+#endif
+
         return 1;
     } else {
         close(kernel_socket);
@@ -467,6 +477,9 @@ kernel_route(int operation, int table,
 
     memset(&msg, 0, sizeof(msg));
     msg.m_rtm.rtm_version = RTM_VERSION;
+#if __OpenBSD__
+	msg.m_rtm.rtm_tableid = getrtable();
+#endif
     switch(operation) {
     case ROUTE_FLUSH:
         msg.m_rtm.rtm_type = RTM_DELETE; break;
