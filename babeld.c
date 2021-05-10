@@ -136,6 +136,45 @@ main(int argc, char **argv)
     unsigned int seed;
     struct interface *ifp;
 
+#if __OpenBSD__
+	if (unveil("/var/lib/babel-state", "rwc") < 0) {
+		fprintf(stderr, "unveil: %s\n", strerror(errno));
+		exit(1);
+	}
+	if (unveil("/etc/babeld.conf", "r") < 0) {
+		fprintf(stderr, "unveil: %s\n", strerror(errno));
+		exit(1);
+	}
+	if (unveil("/var/log/babeld.log", "wc") < 0) {
+		fprintf(stderr, "unveil: %s\n", strerror(errno));
+		exit(1);
+	}
+	if (unveil("/dev/urandom", "r") < 0) {
+		fprintf(stderr, "unveil: %s\n", strerror(errno));
+		exit(1);
+	}
+	if (unveil("/dev/null", "rwc") < 0) {
+		fprintf(stderr, "unveil: %s\n", strerror(errno));
+		exit(1);
+	}
+	if (unveil("/var/run/babeld.pid", "rwc") < 0) {
+		fprintf(stderr, "unveil: %s\n", strerror(errno));
+		exit(1);
+	}
+
+	if (unveil(NULL, NULL) < 0) {
+		fprintf(stderr, "unveil: %s\n", strerror(errno));
+		exit(1);
+	}
+#if notyet
+	if (pledge("stdio inet cpath wpath rpath proc mcast route wroute id", NULL) < 0) {
+		fprintf(stderr, "pledge: %s\n", strerror(errno));
+		exit(1);
+	}
+#endif
+#endif
+		
+
     gettime(&now);
 
     rc = read_random_bytes(&seed, sizeof(seed));
